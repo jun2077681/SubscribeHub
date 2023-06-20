@@ -19,9 +19,11 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Tab from '@mui/material/Tab';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 
 import Header from '@/components/Header/Header';
+import { useArticleContext } from '@/context/ArticleContext';
 import useGetKeywords from '@/hooks/apis/useGetKeywords';
 import useGetSites from '@/hooks/apis/useGetSites';
 import useGetUserSites from '@/hooks/apis/useGetUserSites';
@@ -42,6 +44,7 @@ const SettingSitePanel = () => {
   const userSiteList = useGetUserSites();
   const { searchUserSite } = useSearchUserSites();
   const { setUserSites } = useSetUserSites();
+  const { setArticles } = useArticleContext();
   const [updateUserSiteList, setUpdateUserSiteList] = useState(userSiteList ?? []);
 
   const [siteId, setSiteId] = useState<string>('1');
@@ -49,6 +52,8 @@ const SettingSitePanel = () => {
   const [searchResult, setSearchResult] = useState<UserSite[]>([]);
 
   const [openAlert, setOpenAlert] = useState<boolean>(false);
+
+  const queryClient = useQueryClient();
 
   const handleClose = (event?: SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
@@ -94,7 +99,9 @@ const SettingSitePanel = () => {
 
   const handleSave = () => {
     setUserSites(updateUserSiteList, {
-      onSuccess: () => {
+      onSuccess: async () => {
+        setArticles([]);
+        await queryClient.invalidateQueries(['articles']);
         setOpenAlert(true);
       },
     });
